@@ -28,10 +28,27 @@ enum JobStatus {
 enum ApplicationStatus {
   RECIBIDA
   EN_REVISION
-  ENTREVISTA
-  RECHAZADA
-  CONTRATADO
+  INTERESADO
+  FINALIZADO
 }
+
+// ─── Category (with subcategory support via parentId) ───
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  parentId  String?
+  parent    Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children  Category[] @relation("SubCategories")
+
+  profiles Profile[]
+  jobs     Job[]
+
+  createdAt DateTime @default(now())
+}
+
+// ─── User ───
 
 model User {
   id            String    @id @default(cuid())
@@ -41,14 +58,21 @@ model User {
   image         String?
   password      String?
   role          Role      @default(POSTULANTE)
+  phone         String?
+  dni           String?
+  verificadoCfp Boolean   @default(false)
 
   profile      Profile?
-  jobsPosted   Job[]         @relation("RecruiterJobs")
+  jobsPosted   Job[]          @relation("RecruiterJobs")
   applications Application[]
+  contactsFrom ContactLog[]   @relation("ContactFrom")
+  contactsTo   ContactLog[]   @relation("ContactTo")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// ─── Profile ───
 
 model Profile {
   id     String  @id @default(cuid())
@@ -57,11 +81,25 @@ model Profile {
   userId String  @unique
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Category / trade
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  destacado  Boolean   @default(false)
+
+  // Company fields (for RECLUTADOR profiles)
+  companyName        String?
+  cuit               String?
+  address            String?
+  website            String?
+  companyDescription String?
+
   skills Skill[] @relation("ProfileSkills")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// ─── Skill ───
 
 model Skill {
   id   String @id @default(cuid())
@@ -70,6 +108,8 @@ model Skill {
   profiles Profile[] @relation("ProfileSkills")
   jobs     Job[]     @relation("JobSkills")
 }
+
+// ─── Job ───
 
 model Job {
   id          String    @id @default(cuid())
@@ -84,6 +124,9 @@ model Job {
   recruiterId String
   recruiter   User   @relation("RecruiterJobs", fields: [recruiterId], references: [id])
 
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
   skills       Skill[]       @relation("JobSkills")
   applications Application[]
 
@@ -91,9 +134,12 @@ model Job {
   updatedAt DateTime @updatedAt
 }
 
+// ─── Application ───
+
 model Application {
-  id     String            @id @default(cuid())
-  status ApplicationStatus @default(RECIBIDA)
+  id             String            @id @default(cuid())
+  status         ApplicationStatus @default(RECIBIDA)
+  mensajeInicial String?
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -105,4 +151,17 @@ model Application {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, jobId])
+}
+
+// ─── ContactLog ───
+
+model ContactLog {
+  id         String  @id @default(cuid())
+  fromUserId String
+  fromUser   User    @relation("ContactFrom", fields: [fromUserId], references: [id])
+  toUserId   String
+  toUser     User    @relation("ContactTo", fields: [toUserId], references: [id])
+  mensaje    String?
+
+  createdAt DateTime @default(now())
 }

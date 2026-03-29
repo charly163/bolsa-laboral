@@ -1,14 +1,23 @@
 import { auth } from "@/auth"
-import { redirect } from "next/navigation"
-import { createJob } from "@/app/actions/job"
+import { redirect, notFound } from "next/navigation"
+import { updateJob } from "@/app/actions/job"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 
-export default async function NewJobPage() {
+export default async function EditJobPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
 
   if (!session?.user || session.user.role !== "RECLUTADOR") {
     redirect("/dashboard")
+  }
+
+  const job = await prisma.job.findUnique({
+    where: { id },
+  })
+
+  if (!job || job.recruiterId !== session.user.id) {
+    notFound()
   }
 
   const categories = await prisma.category.findMany({
@@ -23,14 +32,14 @@ export default async function NewJobPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4">
       <div className="w-full max-w-3xl">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Publicar Nueva Oferta</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Editar Oferta</h1>
           <Link href="/dashboard" className="text-sm font-semibold text-gray-500 hover:text-[var(--color-primary-600)] transition-colors">
             ← Volver al Panel
           </Link>
         </div>
 
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-          <form action={createJob} className="space-y-6">
+          <form action={updateJob.bind(null, job.id)} className="space-y-6">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -39,8 +48,8 @@ export default async function NewJobPage() {
                   type="text"
                   name="title"
                   required
+                  defaultValue={job.title}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] transition-all bg-gray-50 focus:bg-white"
-                  placeholder="Ej: Electricista Domiciliario"
                 />
               </div>
 
@@ -50,10 +59,22 @@ export default async function NewJobPage() {
                   type="text"
                   name="company"
                   required
+                  defaultValue={job.company}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] transition-all bg-gray-50 focus:bg-white"
-                  placeholder="Ej: Instalaciones García S.R.L."
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Estado de la Oferta</label>
+              <select
+                name="status"
+                defaultValue={job.status}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] transition-all bg-gray-50 focus:bg-white text-gray-700"
+              >
+                <option value="ACTIVA">Activa (Visible para todos)</option>
+                <option value="CERRADA">Cerrada (Solo tú puedes verla)</option>
+              </select>
             </div>
 
             <div>
@@ -62,8 +83,8 @@ export default async function NewJobPage() {
                 name="description"
                 required
                 rows={6}
+                defaultValue={job.description}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] transition-all bg-gray-50 focus:bg-white"
-                placeholder="Detalla las responsabilidades, requisitos y beneficios..."
               ></textarea>
             </div>
 
@@ -71,6 +92,7 @@ export default async function NewJobPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Rubro / Categoría</label>
               <select
                 name="categoryId"
+                defaultValue={job.categoryId || ""}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] transition-all bg-gray-50 focus:bg-white text-gray-700"
               >
                 <option value="">— Sin categoría —</option>
@@ -92,6 +114,7 @@ export default async function NewJobPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Modalidad</label>
                 <select
                   name="mode"
+                  defaultValue={job.mode}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] transition-all bg-gray-50 focus:bg-white text-gray-700"
                 >
                   <option value="PRESENCIAL">Presencial</option>
@@ -105,8 +128,8 @@ export default async function NewJobPage() {
                 <input
                   type="text"
                   name="location"
+                  defaultValue={job.location || ""}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] transition-all bg-gray-50 focus:bg-white"
-                  placeholder="Ej: Buenos Aires"
                 />
               </div>
 
@@ -115,18 +138,21 @@ export default async function NewJobPage() {
                 <input
                   type="text"
                   name="salaryRange"
+                  defaultValue={job.salaryRange || ""}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] transition-all bg-gray-50 focus:bg-white"
-                  placeholder="Ej: $150.000 - $200.000"
                 />
               </div>
             </div>
 
-            <div className="pt-6 border-t border-gray-100 flex justify-end">
+            <div className="pt-6 border-t border-gray-100 flex justify-end gap-4">
+              <Link href="/dashboard" className="px-8 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-all">
+                Cancelar
+              </Link>
               <button
                 type="submit"
                 className="px-8 py-3 bg-gradient-to-r from-[var(--color-primary-500)] to-[var(--color-primary-600)] text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all"
               >
-                Publicar Oferta
+                Guardar Cambios
               </button>
             </div>
 

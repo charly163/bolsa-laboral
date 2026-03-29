@@ -4,9 +4,9 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 
-export async function applyToJob(jobId: string) {
+export async function applyToJob(jobId: string, mensajeInicial?: string) {
   const session = await auth()
-  
+
   if (!session?.user || session.user.role !== "POSTULANTE") {
     return { error: "Debes iniciar sesión como postulante para aplicar a ofertas." }
   }
@@ -14,7 +14,7 @@ export async function applyToJob(jobId: string) {
   try {
     // Check if profile exists and has CV
     const profile = await prisma.profile.findUnique({
-      where: { userId: session.user.id }
+      where: { userId: session.user.id },
     })
 
     if (!profile || !profile.cvUrl) {
@@ -26,9 +26,9 @@ export async function applyToJob(jobId: string) {
       where: {
         userId_jobId: {
           userId: session.user.id,
-          jobId: jobId
-        }
-      }
+          jobId: jobId,
+        },
+      },
     })
 
     if (existingApp) {
@@ -39,8 +39,9 @@ export async function applyToJob(jobId: string) {
       data: {
         userId: session.user.id,
         jobId: jobId,
-        status: "RECIBIDA"
-      }
+        status: "RECIBIDA",
+        mensajeInicial: mensajeInicial || null,
+      },
     })
 
     revalidatePath("/dashboard")

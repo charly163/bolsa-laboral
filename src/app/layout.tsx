@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Bolsa de Trabajo Premium",
-  description: "Conecta los mejores talentos con las mejores empresas.",
+  title: "Bolsa Laboral V2 — CFP",
+  description: "Conectamos egresados de oficios con las mejores empresas de la región.",
 };
 
 export default function RootLayout({
