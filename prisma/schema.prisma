@@ -32,6 +32,26 @@ enum ApplicationStatus {
   FINALIZADO
 }
 
+enum VerificationStatus {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+enum RatingType {
+  OFERTA
+  PERFIL
+  TRABAJO
+}
+
+enum NotificationType {
+  NUEVO_MENSAJE
+  NUEVA_POSTULACION
+  OFERTA_APROBADA
+  VERIFICACION
+  CALIFICACION
+}
+
 // ─── Category (with subcategory support via parentId) ───
 
 model Category {
@@ -42,8 +62,9 @@ model Category {
   parent    Category?  @relation("SubCategories", fields: [parentId], references: [id])
   children  Category[] @relation("SubCategories")
 
-  profiles Profile[]
-  jobs     Job[]
+  profiles      Profile[]
+  jobs         Job[]
+  jobRequests  JobRequest[]
 
   createdAt DateTime @default(now())
 }
@@ -51,22 +72,34 @@ model Category {
 // ─── User ───
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          Role      @default(POSTULANTE)
-  phone         String?
-  dni           String?
-  verificadoCfp Boolean   @default(false)
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime?
+  image           String?
+  password        String?
+  role            Role      @default(POSTULANTE)
+  phone           String?
+  dni             String?
+  verificadoCfp   Boolean   @default(false)
+  bio             String?
+  location        String?
+  website         String?
 
-  profile      Profile?
-  jobsPosted   Job[]          @relation("RecruiterJobs")
-  applications Application[]
-  contactsFrom ContactLog[]   @relation("ContactFrom")
-  contactsTo   ContactLog[]   @relation("ContactTo")
+  profile                  Profile?
+  jobsPosted               Job[]                  @relation("RecruiterJobs")
+  applications             Application[]
+  contactsFrom             ContactLog[]           @relation("ContactFrom")
+  contactsTo               ContactLog[]           @relation("ContactTo")
+  jobRequests              JobRequest[]
+  verificationRequests     VerificationRequest[]  @relation("VerificationRequests")
+  verificationReviews      VerificationRequest[]  @relation("VerificationReviews")
+  ratingsGiven             Rating[]               @relation("RatingsGiven")
+  ratingsReceived          Rating[]               @relation("RatingsReceived")
+  conversationsInitiated   Conversation[]         @relation("ConversationInitiated")
+  conversationsReceived    Conversation[]         @relation("ConversationReceived")
+  messages                Message[]
+  notifications           Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -94,6 +127,10 @@ model Profile {
   companyDescription String?
 
   skills Skill[] @relation("ProfileSkills")
+
+  yearsExperience Int?   @default(0)
+  matricula       String?
+  isPublic        Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -151,6 +188,94 @@ model Application {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, jobId])
+}
+
+model JobRequest {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  location    String?
+  mode        JobMode  @default(PRESENCIAL)
+  status      JobStatus @default(ACTIVA)
+  budget      String?
+  isUrgent    Boolean  @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationRequest {
+  id         String             @id @default(cuid())
+  status     VerificationStatus @default(PENDIENTE)
+  notes      String?
+  userId     String
+  user       User               @relation("VerificationRequests", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedById String?
+  reviewedBy User?              @relation("VerificationReviews", fields: [reviewedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Rating {
+  id          String     @id @default(cuid())
+  score       Int
+  comment     String?
+  type        RatingType @default(PERFIL)
+
+  fromUserId String
+  fromUser   User   @relation("RatingsGiven", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User   @relation("RatingsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([fromUserId, toUserId, type])
+}
+
+model Conversation {
+  id            String   @id @default(cuid())
+  participantAId String
+  participantA   User     @relation("ConversationInitiated", fields: [participantAId], references: [id])
+  participantBId String
+  participantB   User     @relation("ConversationReceived", fields: [participantBId], references: [id])
+  lastMessageAt  DateTime?
+  archived       Boolean  @default(false)
+
+  messages Message[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id            String      @id @default(cuid())
+  conversationId String
+  conversation  Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId      String
+  sender        User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  text          String
+  seenAt        DateTime?
+
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  readAt    DateTime?
+
+  createdAt DateTime @default(now())
 }
 
 // ─── ContactLog ───

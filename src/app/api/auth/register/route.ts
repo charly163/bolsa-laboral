@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
-import { Role } from "@prisma/client"
 
 export async function POST(req: Request) {
   try {
@@ -26,7 +25,7 @@ export async function POST(req: Request) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
-    const userRole = role === "RECLUTADOR" ? Role.RECLUTADOR : Role.POSTULANTE
+    const userRole = role === "RECLUTADOR" ? "RECLUTADOR" : "POSTULANTE"
 
     const profileData: any = {}
 
@@ -57,8 +56,13 @@ export async function POST(req: Request) {
       { message: "Usuario creado exitosamente", user: { id: newUser.id, email: newUser.email } },
       { status: 201 }
     )
-  } catch (error) {
+  } catch (error: any) {
     console.error("REGISTER_ERROR:", error)
+
+    if (error?.code === "P1001" || error?.name === "PrismaClientInitializationError") {
+      return new NextResponse("No se puede conectar con la base de datos. Verifica la conexión de Neon.", { status: 503 })
+    }
+
     return new NextResponse("Error interno del servidor", { status: 500 })
   }
 }

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -166,6 +167,98 @@ async function main() {
 
     console.log(`  ✅ ${cat.name} (${cat.children.length} subcategorías)`)
   }
+
+  console.log('\n🌱 Seeding demo accounts...')
+
+  const password = await bcrypt.hash('Demo1234!', 10)
+  const electricity = await prisma.category.findUniqueOrThrow({
+    where: { slug: 'electricidad-domiciliaria' },
+  })
+  const plumbing = await prisma.category.findUniqueOrThrow({
+    where: { slug: 'plomeria' },
+  })
+
+  await prisma.user.upsert({
+    where: { email: 'admin@cfp-demo.com' },
+    update: { password, role: 'ADMIN', name: 'Admin CFP Demo' },
+    create: {
+      name: 'Admin CFP Demo',
+      email: 'admin@cfp-demo.com',
+      password,
+      role: 'ADMIN',
+    },
+  })
+
+  const worker = await prisma.user.upsert({
+    where: { email: 'electricista@cfp-demo.com' },
+    update: { password, role: 'POSTULANTE', verificadoCfp: true, name: 'Juan Electricista' },
+    create: {
+      name: 'Juan Electricista',
+      email: 'electricista@cfp-demo.com',
+      password,
+      role: 'POSTULANTE',
+      verificadoCfp: true,
+      phone: '11-5555-0101',
+      profile: {
+        create: {
+          bio: 'Electricista domiciliario egresado del CFP, con experiencia en instalaciones y mantenimiento.',
+          categoryId: electricity.id,
+          yearsExperience: 5,
+          matricula: 'MAT-DEMO-001',
+        },
+      },
+    },
+  })
+
+  const company = await prisma.user.upsert({
+    where: { email: 'empresa@cfp-demo.com' },
+    update: { password, role: 'RECLUTADOR', name: 'Constructora Demo' },
+    create: {
+      name: 'Constructora Demo',
+      email: 'empresa@cfp-demo.com',
+      password,
+      role: 'RECLUTADOR',
+      profile: {
+        create: {
+          companyName: 'Constructora Demo SRL',
+          cuit: '30-00000000-0',
+          companyDescription: 'Empresa demo para probar publicación de ofertas.',
+        },
+      },
+    },
+  })
+
+  await prisma.job.upsert({
+    where: { id: 'demo-oferta-electricista' },
+    update: {},
+    create: {
+      id: 'demo-oferta-electricista',
+      title: 'Electricista domiciliario',
+      description: 'Búsqueda de electricista para instalaciones y mantenimiento.',
+      company: 'Constructora Demo SRL',
+      location: 'CABA y alrededores',
+      mode: 'PRESENCIAL',
+      categoryId: electricity.id,
+      recruiterId: company.id,
+    },
+  })
+
+  await prisma.jobRequest.upsert({
+    where: { id: 'demo-solicitud-plomero' },
+    update: {},
+    create: {
+      id: 'demo-solicitud-plomero',
+      title: 'Busco plomero',
+      description: 'Necesito reparar una pérdida de agua en una vivienda.',
+      location: 'CABA',
+      categoryId: plumbing.id,
+      userId: worker.id,
+    },
+  })
+
+  console.log('  ✅ admin@cfp-demo.com')
+  console.log('  ✅ electricista@cfp-demo.com')
+  console.log('  ✅ empresa@cfp-demo.com')
 
   console.log('\n🎉 Seed completed!')
 }

@@ -58,13 +58,13 @@ export default async function DashboardPage() {
   // Fetch jobs and categories for postulantes
   const allJobs = !isRecruiter
     ? await prisma.job.findMany({
-        where: { status: "ACTIVA" },
-        orderBy: { createdAt: "desc" },
-        include: {
-          recruiter: { select: { name: true, verificadoCfp: true } },
-          category: true,
-        },
-      })
+      where: { status: "ACTIVA" },
+      orderBy: { createdAt: "desc" },
+      include: {
+        recruiter: { select: { name: true, verificadoCfp: true } },
+        category: true,
+      },
+    })
     : []
 
   const categories = await prisma.category.findMany({
@@ -78,20 +78,20 @@ export default async function DashboardPage() {
   // Fetch verified egresados for "Tablón Inverso"
   const verifiedEgresados = !isRecruiter
     ? await prisma.user.findMany({
-        where: {
-          role: "POSTULANTE",
-          verificadoCfp: true,
+      where: {
+        role: "POSTULANTE",
+        verificadoCfp: true,
+      },
+      include: {
+        profile: {
+          include: { category: true },
         },
-        include: {
-          profile: {
-            include: { category: true },
-          },
-        },
-        take: 20,
-      })
+      },
+      take: 20,
+    })
     : []
 
-  const userApplicationJobIds = user.applications.map((app) => app.jobId)
+  const userApplicationJobIds = user.applications.map((app: any) => app.jobId)
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -164,7 +164,7 @@ export default async function DashboardPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {user.jobsPosted.map((job) => (
+                    {user.jobsPosted.map((job: any) => (
                       <div key={job.id} className="p-4 border border-gray-200 rounded-xl hover:shadow-md transition-shadow bg-gray-50">
                         <div className="flex justify-between items-center mb-4">
                           <div>
@@ -197,7 +197,7 @@ export default async function DashboardPage() {
                           </h4>
                           {job.applications.length > 0 ? (
                             <ul className="space-y-2">
-                              {job.applications.map((app) => (
+                              {job.applications.map((app: any) => (
                                 <li key={app.id} className="text-sm bg-white p-2 rounded-lg border border-gray-100 flex justify-between items-center px-3">
                                   <span className="font-medium text-gray-800">{app.user.name}</span>
                                   <div className="flex gap-4 items-center">
@@ -241,7 +241,7 @@ export default async function DashboardPage() {
                       <h2 className="text-xl font-bold text-gray-800">Mensajes de Empresas</h2>
                     </div>
                     <div className="space-y-4">
-                      {user.contactsTo.map((contact) => (
+                      {user.contactsTo.map((contact: any) => (
                         <div key={contact.id} className="p-4 bg-white rounded-xl border border-[var(--color-primary-200)] shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex justify-between items-start mb-2">
                             <h3 className="font-bold text-[var(--color-primary-700)]">
@@ -269,7 +269,7 @@ export default async function DashboardPage() {
                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h2 className="text-xl font-bold text-gray-800 mb-4">Mis Postulaciones</h2>
                     <div className="space-y-3">
-                      {user.applications.map((app) => (
+                      {user.applications.map((app: any) => (
                         <div key={app.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
                           <div>
                             <p className="font-semibold text-gray-900">{app.job.title}</p>
@@ -278,12 +278,11 @@ export default async function DashboardPage() {
                               Aplicado el {new Date(app.createdAt).toLocaleDateString("es-AR")}
                             </p>
                           </div>
-                          <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
-                            app.status === "RECIBIDA" ? "bg-blue-100 text-blue-700" :
-                            app.status === "EN_REVISION" ? "bg-yellow-100 text-yellow-700" :
-                            app.status === "INTERESADO" ? "bg-emerald-100 text-emerald-700" :
-                            "bg-gray-100 text-gray-700"
-                          }`}>
+                          <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${app.status === "RECIBIDA" ? "bg-blue-100 text-blue-700" :
+                              app.status === "EN_REVISION" ? "bg-yellow-100 text-yellow-700" :
+                                app.status === "INTERESADO" ? "bg-emerald-100 text-emerald-700" :
+                                  "bg-gray-100 text-gray-700"
+                            }`}>
                             {app.status.replace("_", " ")}
                           </span>
                         </div>
@@ -372,11 +371,10 @@ export default async function DashboardPage() {
 
             {/* Verification Status for Postulantes */}
             {!isRecruiter && (
-              <div className={`p-4 rounded-xl border ${
-                user.verificadoCfp
+              <div className={`p-4 rounded-xl border ${user.verificadoCfp
                   ? "bg-emerald-50 border-emerald-200"
                   : "bg-amber-50 border-amber-200"
-              }`}>
+                }`}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">{user.verificadoCfp ? "✅" : "⏳"}</span>
                   <h3 className="text-sm font-bold text-gray-900">

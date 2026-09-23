@@ -96,10 +96,10 @@ export default async function EditJobPage({ params }: { params: Promise<{ id: st
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] transition-all bg-gray-50 focus:bg-white text-gray-700"
               >
                 <option value="">— Sin categoría —</option>
-                {categories.map((cat) => (
+                {categories.map((cat: any) => (
                   <optgroup key={cat.id} label={cat.name}>
                     <option value={cat.id}>{cat.name} (General)</option>
-                    {cat.children.map((sub) => (
+                    {cat.children.map((sub: any) => (
                       <option key={sub.id} value={sub.id}>
                         {sub.name}
                       </option>

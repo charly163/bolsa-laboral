@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bolsa laboral CFP
 
-## Getting Started
+Bolsa laboral para conectar egresados y trabajadores calificados del CFP con empresas, empleadores y personas que buscan oficios especializados.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js 16
+- Prisma ORM
+- PostgreSQL / Neon
+- Netlify
+- Tailwind CSS
+
+## Requisitos
+
+- Node.js 20+
+- Cuenta en Neon o PostgreSQL
+- Cuenta en Netlify
+
+## Variables de entorno
+
+Crea un archivo `.env` en la raíz del proyecto con:
+
+```env
+DATABASE_URL="postgresql://<user>:<password>@<host>:5432/<db>?sslmode=require"
+NEXTAUTH_SECRET="cambia-esto-por-una-clave-segura"
+NEXTAUTH_URL="http://localhost:3000"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Neon example
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+DATABASE_URL="postgresql://neondb_owner:xxxxx@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require"
+NEXTAUTH_SECRET="super-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Desarrollo local
 
-## Learn More
+```bash
+npm install
+npx prisma generate
+npx prisma db push
+npm run dev -- --port 3001
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open http://localhost:3001
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Producción en Netlify
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Conectar el repo en Netlify.
+2. Configurar el build command:
+   ```bash
+   npm run build
+   ```
+3. Definir variables de entorno con `DATABASE_URL`, `NEXTAUTH_SECRET` y `NEXTAUTH_URL`.
+4. Deploy del proyecto.
 
-## Deploy on Vercel
+## Funcionalidades principales del MVP
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Registro de personas y empresas
+- Perfiles con especialización y verificación
+- Publicación de ofertas laborales y búsquedas de trabajo
+- Verificación por parte del CFP
+- Calificaciones y reputación
+- Búsquedas por oficio, ubicación y modalidad
+- Chat interno entre usuarios
+- Panel administrativo del CFP
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Roadmap
+
+- Módulo de verificación de egresados
+- Calificación de perfiles
+- Chat interno por conversación
+- Flujos de postulación y match
+- Notificaciones de mensajes y postulaciones
