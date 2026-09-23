@@ -63,6 +63,11 @@ export async function POST(req: Request) {
       return new NextResponse("No se puede conectar con la base de datos. Verifica la conexión de Neon.", { status: 503 })
     }
 
-    return new NextResponse("Error interno del servidor", { status: 500 })
+    if (error?.code === "P2002") {
+      return new NextResponse("El correo ya está en uso", { status: 400 })
+    }
+
+    console.error("REGISTER_ERROR_CODE:", error?.code || error?.name || "UNKNOWN")
+    return new NextResponse("Error interno del servidor. Código: " + (error?.code || error?.name || "UNKNOWN"), { status: 500 })
   }
 }
