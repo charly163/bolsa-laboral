@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -33,7 +34,7 @@ export default function RegisterPage() {
     fetch("/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data))
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,7 +61,19 @@ export default function RegisterPage() {
       })
 
       if (res.ok) {
-        router.push("/login")
+        const login = await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+        })
+
+        if (login?.error) {
+          setError("La cuenta fue creada, pero no se pudo iniciar sesión automáticamente.")
+          return
+        }
+
+        router.replace("/dashboard")
+        router.refresh()
       } else {
         const text = await res.text()
         setError(text || "Error al registrarse. Intenta nuevamente.")
@@ -107,15 +120,15 @@ export default function RegisterPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Correo Electrónico *
             </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-400)] focus:border-transparent transition-all bg-white/80"
-              placeholder="tu@email.com"
-            />
-          </div>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-400)] focus:border-transparent transition-all bg-white/80"
+                placeholder="tu@email.com"
+              />
+            </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -165,21 +178,19 @@ export default function RegisterPage() {
             </label>
             <div className="grid grid-cols-2 gap-4">
               <label
-                className={`cursor-pointer rounded-xl border-2 p-4 text-center transition-all ${
-                  role === "POSTULANTE"
+                className={`cursor-pointer rounded-xl border-2 p-4 text-center transition-all ${role === "POSTULANTE"
                     ? "border-[var(--color-celeste-500)] bg-[var(--color-celeste-50)] text-[var(--color-celeste-600)] font-semibold shadow-inner"
                     : "border-gray-200 bg-white/50 text-gray-500 hover:border-gray-300"
-                }`}
+                  }`}
               >
                 <input type="radio" name="role" value="POSTULANTE" checked={role === "POSTULANTE"} onChange={() => setRole("POSTULANTE")} className="hidden" />
                 🔧 Buscar Trabajo
               </label>
               <label
-                className={`cursor-pointer rounded-xl border-2 p-4 text-center transition-all ${
-                  role === "RECLUTADOR"
+                className={`cursor-pointer rounded-xl border-2 p-4 text-center transition-all ${role === "RECLUTADOR"
                     ? "border-[var(--color-primary-500)] bg-[var(--color-primary-50)] text-[var(--color-primary-600)] font-semibold shadow-inner"
                     : "border-gray-200 bg-white/50 text-gray-500 hover:border-gray-300"
-                }`}
+                  }`}
               >
                 <input type="radio" name="role" value="RECLUTADOR" checked={role === "RECLUTADOR"} onChange={() => setRole("RECLUTADOR")} className="hidden" />
                 🏢 Contratar Talento
