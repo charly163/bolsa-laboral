@@ -1,8 +1,15 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
-import { createPublication, publicationTypeHelp } from "@/app/actions/publication"
+import { createPublication } from "@/app/actions/publication"
 import Link from "next/link"
+
+const publicationTypeHelp = {
+    OFERTA_LABORAL: "Busco una persona para contratar o incorporar a un trabajo.",
+    SERVICIO_PROFESIONAL: "Ofrezco mis conocimientos o servicios, como electricidad o plomeria.",
+    PRODUCTO: "Vendo o promociono algo que fabrico, como pastas caseras.",
+    SOLICITUD_TRABAJO: "Necesito que alguien realice un trabajo especifico.",
+} as const
 
 const publicationTypes = [
     { value: "OFERTA_LABORAL", label: "Oferta laboral", description: publicationTypeHelp.OFERTA_LABORAL },

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
-export const publicationTypeHelp = {
+const publicationTypeHelp = {
     OFERTA_LABORAL: "Busco una persona para contratar o incorporar a un trabajo.",
     SERVICIO_PROFESIONAL: "Ofrezco mis conocimientos o servicios, como electricidad o plomeria.",
     PRODUCTO: "Vendo o promociono algo que fabrico, como pastas caseras.",
