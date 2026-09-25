@@ -30,8 +30,9 @@ export async function updateProfile(formData: FormData) {
 
     // Upload CV to Cloudinary if provided
     if (file && file.size > 0) {
-      if (file.type !== "application/pdf") {
-        return { error: "El archivo debe ser un PDF" }
+      const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"]
+      if (!allowedTypes.includes(file.type)) {
+        return { error: "El archivo debe ser PDF, JPG, PNG o WebP" }
       }
 
       if (file.size > 5 * 1024 * 1024) {
@@ -44,10 +45,9 @@ export async function updateProfile(formData: FormData) {
       const result = await new Promise<any>((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
-            resource_type: "raw",
+            resource_type: file.type === "application/pdf" ? "raw" : "image",
             folder: "bolsa-laboral/cvs",
             public_id: `cv-${session.user.id}-${Date.now()}`,
-            format: "pdf",
           },
           (error, result) => {
             if (error) reject(error)

@@ -59,11 +59,10 @@ export default function ProfileForm({ user, categories }: ProfileFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       {message && (
         <div
-          className={`p-4 rounded-xl border text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300 ${
-            message.type === "success"
+          className={`p-4 rounded-xl border text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300 ${message.type === "success"
               ? "bg-emerald-50 border-emerald-200 text-emerald-700"
               : "bg-red-50 border-red-200 text-red-700"
-          }`}
+            }`}
         >
           {message.text}
         </div>
@@ -146,7 +145,7 @@ export default function ProfileForm({ user, categories }: ProfileFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Currículum Vitae (Formato PDF)
+              Currículum o certificado (opcional)
             </label>
             <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:bg-gray-50 transition-colors">
               <div className="space-y-1 text-center">
@@ -156,10 +155,10 @@ export default function ProfileForm({ user, categories }: ProfileFormProps) {
                 <div className="flex text-sm text-gray-600 justify-center">
                   <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[var(--color-primary-500)]">
                     <span>{loading ? "Procesando..." : "Seleccionar un archivo"}</span>
-                    <input id="file-upload" name="cv" type="file" accept=".pdf" className="sr-only" disabled={loading} />
+                    <input id="file-upload" name="cv" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="sr-only" disabled={loading} />
                   </label>
                 </div>
-                <p className="text-xs text-gray-500">Solo PDF hasta 5MB</p>
+                <p className="text-xs text-gray-500">Opcional. PDF, JPG, PNG o WebP hasta 5MB.</p>
               </div>
             </div>
             {user.profile?.cvUrl && (
