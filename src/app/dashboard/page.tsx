@@ -142,6 +142,12 @@ export default async function DashboardPage() {
               ? "Administra tus ofertas y encuentra talento."
               : "Gestiona tu perfil profesional y aplica a ofertas."}
           </p>
+          <Link
+            href="/dashboard/publicaciones/nueva"
+            className="mt-4 inline-flex rounded-lg bg-teal-700 px-4 py-2 text-sm font-bold text-white hover:bg-teal-800"
+          >
+            + Publicar algo
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -279,9 +285,9 @@ export default async function DashboardPage() {
                             </p>
                           </div>
                           <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${app.status === "RECIBIDA" ? "bg-blue-100 text-blue-700" :
-                              app.status === "EN_REVISION" ? "bg-yellow-100 text-yellow-700" :
-                                app.status === "INTERESADO" ? "bg-emerald-100 text-emerald-700" :
-                                  "bg-gray-100 text-gray-700"
+                            app.status === "EN_REVISION" ? "bg-yellow-100 text-yellow-700" :
+                              app.status === "INTERESADO" ? "bg-emerald-100 text-emerald-700" :
+                                "bg-gray-100 text-gray-700"
                             }`}>
                             {app.status.replace("_", " ")}
                           </span>
@@ -372,8 +378,8 @@ export default async function DashboardPage() {
             {/* Verification Status for Postulantes */}
             {!isRecruiter && (
               <div className={`p-4 rounded-xl border ${user.verificadoCfp
-                  ? "bg-emerald-50 border-emerald-200"
-                  : "bg-amber-50 border-amber-200"
+                ? "bg-emerald-50 border-emerald-200"
+                : "bg-amber-50 border-amber-200"
                 }`}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">{user.verificadoCfp ? "✅" : "⏳"}</span>
