@@ -154,12 +154,13 @@ export async function createCategory(formData: FormData) {
     return { error: "El nombre es requerido." }
   }
 
-  const slug = name
+  const nameSlug = name
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "")
+  const slug = parentId ? `${parentId}-${nameSlug}` : nameSlug
 
   try {
     await prisma.category.create({

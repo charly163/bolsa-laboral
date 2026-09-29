@@ -30,6 +30,15 @@ export async function updateProfile(formData: FormData) {
 
     // Upload CV to Cloudinary if provided
     if (file && file.size > 0) {
+      const cloudinaryConfigured = Boolean(
+        process.env.CLOUDINARY_CLOUD_NAME &&
+        process.env.CLOUDINARY_API_KEY &&
+        process.env.CLOUDINARY_API_SECRET
+      )
+      if (!cloudinaryConfigured) {
+        return { error: "La carga de archivos no está configurada. El administrador debe agregar las credenciales de Cloudinary en Netlify." }
+      }
+
       const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"]
       if (!allowedTypes.includes(file.type)) {
         return { error: "El archivo debe ser PDF, JPG, PNG o WebP" }
@@ -42,20 +51,26 @@ export async function updateProfile(formData: FormData) {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
 
-      const result = await new Promise<any>((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            resource_type: file.type === "application/pdf" ? "raw" : "image",
-            folder: "bolsa-laboral/cvs",
-            public_id: `cv-${session.user.id}-${Date.now()}`,
-          },
-          (error, result) => {
-            if (error) reject(error)
-            else resolve(result)
-          }
-        )
-        uploadStream.end(buffer)
-      })
+      let result: any
+      try {
+        result = await new Promise<any>((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              resource_type: file.type === "application/pdf" ? "raw" : "image",
+              folder: "bolsa-laboral/cvs",
+              public_id: `cv-${session.user.id}-${Date.now()}${file.type === "application/pdf" ? ".pdf" : ""}`,
+            },
+            (error, uploadResult) => {
+              if (error) reject(error)
+              else resolve(uploadResult)
+            }
+          )
+          uploadStream.end(buffer)
+        })
+      } catch (uploadError) {
+        console.error("CV_UPLOAD_PROVIDER_ERROR:", uploadError)
+        return { error: "No se pudo subir el archivo a Cloudinary. Revisá sus credenciales y el límite de carga." }
+      }
 
       cvUrl = result.secure_url
     }
@@ -99,6 +114,9 @@ export async function updateProfile(formData: FormData) {
     return { success: true }
   } catch (error) {
     console.error("PROFILE_UPDATE_ERROR:", error)
+    if (formData.get("cv") instanceof File && (formData.get("cv") as File).size > 0) {
+      return { error: "No se pudo subir el archivo. Verificá la configuración de Cloudinary e intentá nuevamente." }
+    }
     return { error: "Ocurrió un error al actualizar el perfil." }
   }
 }

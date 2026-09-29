@@ -63,7 +63,7 @@ enum PublicationType {
 
 model Category {
   id        String     @id @default(cuid())
-  name      String     @unique
+  name      String
   slug      String     @unique
   parentId  String?
   parent    Category?  @relation("SubCategories", fields: [parentId], references: [id])
@@ -75,6 +75,8 @@ model Category {
   publications Publication[]
 
   createdAt DateTime @default(now())
+
+  @@unique([parentId, name])
 }
 
 // ─── User ───
